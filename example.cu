@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
       word2vec_map[buf] = i;
       int j = 0;
       while (ss >> buf){
+        cout << buf << endl;
         word_matrix[i*dimension+j] = stod(buf);
         j++;
       }
