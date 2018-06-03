@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
       word_count++;
     }
     cout << word_count << " " << dimension << endl;
-    int matrix_size = word_count*dimension;
+    int matrix_size = word_count*dimension/20;
     cout << matrix_size << endl;
     double word_matrix_h[matrix_size];
     double* word_matrix_d;
