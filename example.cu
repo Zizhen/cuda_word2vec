@@ -31,7 +31,6 @@ int main(int argc, char* argv[]) {
     string str;
     ifstream infile;
     infile.open(argv[2]);
-    cout << argv[2] << endl;
     int word_count = 0;
     int dimension = stod(argv[4]);
     while(getline(infile,str)){
@@ -40,6 +39,7 @@ int main(int argc, char* argv[]) {
     int matrix_size = word_count*dimension;
     double word_matrix[matrix_size];
     cudaMalloc((void **)&word_matrix, matrix_size*sizeof(double));
+    cout << matrix_size << endl;
 
     int i = 0;
     while(getline(infile,str)){
