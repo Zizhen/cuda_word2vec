@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     ifstream infile;
     infile.open(argv[2]);
     int word_count = 0;
-    int dimension = argv[4];
+    int dimension = stod(argv[4]);
 
     while(getline(infile,str)){
       word_count++;
