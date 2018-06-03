@@ -48,7 +48,11 @@ int main(int argc, char* argv[]) {
     // cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
-    cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
+    if(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)) == cudaErrorMemoryApplication){
+      cout << "error" << endl;
+    } else{
+      cout << "you are good" << endl;
+    }
     cudaSetDevice(0);
     cudaMemGetInfo(&f, &t);
     cout << f << " " << t << endl;
