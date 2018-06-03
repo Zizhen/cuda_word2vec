@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   else if (argc > 2){
     vector<string> word_list;
     vector<double> word_vector;
-    vector<vector<double>> word_matrix;
+    vector<double> word_matrix_1d;
     unordered_map<string, vector<double>> word2vec_map;
     string str;
     ifstream infile;
@@ -56,17 +56,21 @@ int main(int argc, char* argv[]) {
       vector<string> tokens;
       ss >> buf;
       word_list.push_back(buf);
-      while (ss >> buf)
+      while (ss >> buf){
+        word_matrix_1d.push_back(stod(buf));
         word_vector.push_back(stod(buf));
-      word_matrix.push_back(word_vector);
+      }
       word2vec_map[word_list[i]] = word_vector;
       i++;
     }
     int word_count = word_list.size();
     int dimension = word_vector.size();
     infile.close();
+    double* word_matrix_1d_arr = &word_matrix_1d[0];
 
-    double** word_matrix_2d = vec2arr(word_matrix,word_count,dimension);
+    for(int i = 0; i < 100; i++){
+      cout << word_matrix_1d[i];
+    }
 
 
     // if(strcmp(argv[1],"analogy") == 0){
