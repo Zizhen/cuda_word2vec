@@ -40,9 +40,9 @@ int main(int argc, char* argv[]) {
     cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension;
     cout << matrix_size << endl;
-    float* word_matrix = (float*)malloc(matrix_size);
-    // float word_matrix[matrix_size];
-    // cudaMalloc((void **)&word_matrix, matrix_size*sizeof(float));
+    double word_matrix_h[matrix_size];
+    double* word_matrix_d;
+    cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(double));
     cout << matrix_size << endl;
 
     int i = 0;
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
       int j = 0;
       while (ss >> buf){
         cout << buf << endl;
-        word_matrix[i*dimension+j] = stod(buf);
+        word_matrix_h[i*dimension+j] = stod(buf);
         j++;
       }
       i++;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     //   cout << endl;
     // }
 
-    cudaFree(word_matrix);
+    cudaFree(word_matrix_d);
 
   }
   ////////////////////////////////
