@@ -19,14 +19,13 @@ void add(int *a, int *b) {
   }
 }
 
-double** vec2arr(vector<vector<double>> &vals, int N, int M)
-{
+double** vec2arr(vector<vector<double>> vals, int N, int M){
    double** temp;
    temp = new double*[N];
-   for(unsigned i=0; (i < N); i++)
+   for(unsigned i=0; i < N; i++)
    {
       temp[i] = new double[M];
-      for(unsigned j=0; (j < M); j++)
+      for(unsigned j=0; j < M; j++)
       {
           temp[i][j] = vals[i][j];
       }
