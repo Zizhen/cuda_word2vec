@@ -27,34 +27,40 @@ int main(int argc, char* argv[]) {
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
-    double* word_vector;
-    unordered_map<string, double*> word2vec_map;
+    unordered_map<string, int> word2vec_map;
     string str;
     ifstream infile;
     infile.open(argv[2]);
     int word_count = 0;
     int dimension = stod(argv[4]);
-
     while(getline(infile,str)){
       word_count++;
     }
+    int matrix_size = word_count*dimension;
+    double word_matrix[matrix_size];
+    cudaMalloc((void **)&word_matrix, matrix_size*sizeof(double));
 
-    cout << word_count << " " << dimension << endl;
-    // while(getline(infile,str)){
-    //   word_vector.clear();
-    //   string buf;
-    //   stringstream ss(str);
-    //   vector<string> tokens;
-    //   ss >> buf;
-    //   word_list.push_back(buf);
-    //   while (ss >> buf){
-    //     word_matrix_1d.push_back(stod(buf));
-    //     word_vector.push_back(stod(buf));
-    //   }
-    //   word2vec_map[word_list[i]] = word_vector;
-    // }
+    int i = 0;
+    while(getline(infile,str)){
+      string buf;
+      stringstream ss(str);
+      ss >> buf;
+      word2vec_map[buf] = i;
+      int j = 0;
+      while (ss >> buf){
+        word_matrix[i*dimension+j] = stod(buf);
+        j++
+      }
+      i++;
+    }
     infile.close();
 
+    for (int i = 0; i < 10; i++){
+      for (int j = 0; j < 10; j++){
+        cout << word_matrix[i][j] << " "
+      }
+      cout << endl;
+    }
 
 
   }
