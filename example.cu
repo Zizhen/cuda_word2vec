@@ -13,6 +13,16 @@ using namespace std;
 // nvcc -o example example.cu
 #define N 10
 
+#define ERROR_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess)
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 __global__
 void add(int *a, int *b) {
   int i = blockIdx.x;
@@ -48,12 +58,13 @@ int main(int argc, char* argv[]) {
     // cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
-    cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
-    if(err == cudaErrorMemoryAllocation){
-      cout << "error" << endl;
-    } else{
-      cout << "you are good" << endl;
-    }
+    ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)));
+    // cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
+    // if(err == cudaErrorMemoryAllocation){
+    //   cout << "error" << endl;
+    // } else{
+    //   cout << "you are good" << endl;
+    // }
     cudaSetDevice(0);
     cudaMemGetInfo(&f, &t);
     cout << f << " " << t << endl;
