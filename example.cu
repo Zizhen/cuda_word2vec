@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
     cudaSetDevice(0);
     cudaMemGetInfo(&f, &t);
     cout << f << " " << t << endl;
+
     unordered_map<string, int> word2vec_map;
     string str;
     ifstream infile;
@@ -42,13 +43,16 @@ int main(int argc, char* argv[]) {
     while(getline(infile,str)){
       word_count++;
     }
-    cout << word_count << " " << dimension << endl;
+    // cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension/10;
-    cout << matrix_size << endl;
+    // cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
     cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
-    cout << matrix_size << endl;
+    cudaMemGetInfo(&f, &t);
+    cout << f << " " << t << endl;
+
+    // cout << matrix_size << endl;
 
     int i = 0;
     while(getline(infile,str)){
