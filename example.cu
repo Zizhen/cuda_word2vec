@@ -40,9 +40,9 @@ int main(int argc, char* argv[]) {
     cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension/10;
     cout << matrix_size << endl;
-    double word_matrix_h[matrix_size];
-    double* word_matrix_d;
-    cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(double));
+    float word_matrix_h[matrix_size];
+    float* word_matrix_d;
+    cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
     cout << matrix_size << endl;
 
     int i = 0;
