@@ -48,7 +48,8 @@ int main(int argc, char* argv[]) {
     // cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
-    if(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)) == cudaErrorMemoryApplication){
+    cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
+    if(err == cudaErrorMemoryAllocation){
       cout << "error" << endl;
     } else{
       cout << "you are good" << endl;
