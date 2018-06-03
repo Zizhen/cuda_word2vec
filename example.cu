@@ -54,8 +54,10 @@ int main(int argc, char* argv[]) {
     infile.close();
     double* word_matrix_1d_arr = &word_matrix_1d[0];
 
+    cout << "test" << endl;
     for(int i = 0; i < 100; i++){
-      cout << word_matrix_1d[i];
+      cout << word_matrix_1d_arr[i] << endl;
+      cout << word_matrix_1d[i] << endl;
     }
 
 
