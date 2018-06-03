@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
     string str;
     ifstream infile;
     infile.open(argv[2]);
+    cout << argv[2] << endl;
     int word_count = 0;
     int dimension = stod(argv[4]);
     while(getline(infile,str)){
