@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
     //   cout << endl;
     // }
 
+    cudaFree(word_matrix);
 
   }
   ////////////////////////////////
