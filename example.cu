@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
     cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
+    cudaSetDevice(0);
     cudaMemGetInfo(&f, &t);
     cout << f << " " << t << endl;
 
