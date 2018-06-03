@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
     cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension;
     cout << matrix_size << endl;
-    double word_matrix[matrix_size];
-    cudaMalloc((void **)&word_matrix, matrix_size*sizeof(double));
+    float word_matrix[matrix_size];
+    cudaMalloc((void **)&word_matrix, matrix_size*sizeof(float));
     cout << matrix_size << endl;
 
     int i = 0;
