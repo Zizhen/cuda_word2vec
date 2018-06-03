@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <unordered_map>
+#include "cuda.h"
 
 using namespace std;
 
@@ -40,7 +41,8 @@ int main(int argc, char* argv[]) {
     int matrix_size = word_count*dimension;
     cout << matrix_size << endl;
     float word_matrix[matrix_size];
-    cudaMalloc((void **)&word_matrix, matrix_size*sizeof(float));
+    word_matrix = (float*)malloc(matrix_size);
+    // cudaMalloc((void **)&word_matrix, matrix_size*sizeof(float));
     cout << matrix_size << endl;
 
     int i = 0;
