@@ -22,56 +22,41 @@ void add(int *a, int *b) {
 int main(int argc, char* argv[]) {
   if(argc == 2){
     if(strcmp(argv[1], "analogy") == 0)
-      cout << "usage: ./a.out analogy path/to/your/model path/to/your/testfile" << endl;
+      cout << "usage: ./a.out analogy path/to/your/model path/to/your/testfile dimension" << endl;
     else
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
-    vector<string> word_list;
-    vector<double> word_vector;
-    vector<double> word_matrix_1d;
-    unordered_map<string, vector<double>> word2vec_map;
+    double* word_vector;
+    unordered_map<string, double*> word2vec_map;
     string str;
     ifstream infile;
     infile.open(argv[2]);
-    int i = 0;
+    int word_count = 0;
+    int dimension = argv[4];
+
     while(getline(infile,str)){
-      word_vector.clear();
-      string buf;
-      stringstream ss(str);
-      vector<string> tokens;
-      ss >> buf;
-      word_list.push_back(buf);
-      while (ss >> buf){
-        word_matrix_1d.push_back(stod(buf));
-        word_vector.push_back(stod(buf));
-      }
-      word2vec_map[word_list[i]] = word_vector;
-      i++;
-    }
-    int word_count = word_list.size();
-    int dimension = word_vector.size();
-    infile.close();
-    double* word_matrix_1d_arr = &word_matrix_1d[0];
-
-    cout << "test" << endl;
-    for(int i = 0; i < 100; i++){
-      cout << word_matrix_1d_arr[i] << endl;
-      cout << word_matrix_1d[i] << endl;
+      word_count++;
     }
 
-
-    // if(strcmp(argv[1],"analogy") == 0){
-    //   if(argc == 6){
-    //     string w1 = argv[3];
-    //     string w2 = argv[4];
-    //     string w3 = argv[5];
-    //     vector<nn_entry> NNs = analogy(w1, w2, w3, word_matrix, word2vec_map);
-    //     for(auto i: NNs){
-    //       cout << std::get<0>(i) << " " << std::get<1>(i) << endl;
-    //     }
+    cout << word_count << " " << dimension << endl;
+    // while(getline(infile,str)){
+    //   word_vector.clear();
+    //   string buf;
+    //   stringstream ss(str);
+    //   vector<string> tokens;
+    //   ss >> buf;
+    //   word_list.push_back(buf);
+    //   while (ss >> buf){
+    //     word_matrix_1d.push_back(stod(buf));
+    //     word_vector.push_back(stod(buf));
     //   }
+    //   word2vec_map[word_list[i]] = word_vector;
     // }
+    infile.close();
+
+
+
   }
   ////////////////////////////////
     int ha[N], hb[N];
