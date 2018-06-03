@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
       string buf;
       stringstream ss(str);
       ss >> buf;
+      cout << buf << endl;
       word2vec_map[buf] = i;
       int j = 0;
       while (ss >> buf){
@@ -56,12 +57,12 @@ int main(int argc, char* argv[]) {
     }
     infile.close();
 
-    for (int i = 0; i < 10; i++){
-      for (int j = 0; j < 10; j++){
-        cout << word_matrix[i*dimension+j] << " ";
-      }
-      cout << endl;
-    }
+    // for (int i = 0; i < 10; i++){
+    //   for (int j = 0; j < 10; j++){
+    //     cout << word_matrix[i*dimension+j] << " ";
+    //   }
+    //   cout << endl;
+    // }
 
 
   }
