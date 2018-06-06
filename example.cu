@@ -55,16 +55,16 @@ int main(int argc, char* argv[]) {
     }
     // cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension;
-    // cout << matrix_size << endl;
+    cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
     ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)));
-    // cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
-    // if(err == cudaErrorMemoryAllocation){
-    //   cout << "error" << endl;
-    // } else{
-    //   cout << "you are good" << endl;
-    // }
+    cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
+    if(err == cudaErrorMemoryAllocation){
+      cout << "error" << endl;
+    } else{
+      cout << "you are good" << endl;
+    }
     cudaSetDevice(0);
     cudaMemGetInfo(&f, &t);
     cout << f << " " << t << endl;
