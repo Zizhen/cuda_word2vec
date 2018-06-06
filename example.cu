@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     cout << matrix_size << endl;
     float word_matrix_h[matrix_size];
     float* word_matrix_d;
-    ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, 10693650*sizeof(float)));
     cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
     if(err == cudaErrorMemoryAllocation){
       cout << "error" << endl;
