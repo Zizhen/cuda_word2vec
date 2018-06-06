@@ -7,7 +7,7 @@
 // nvcc -o example example.cu
 //
 
-#define N 1000
+#define N 10693650
 
 //
 // A function marked __global__
