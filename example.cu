@@ -26,8 +26,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 __global__
 void normalize(float* mat, float* normSum_d, int dim){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  int idx = i/dim;
-  mat[i] /= normSum_d[idx];
+  cout << normSum_d[blockIdx.x] << endl;
+  mat[i] /= normSum_d[blockIdx.x];
 }
 
 __global__
@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     float* normSum_d;
     cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
-    dim3 dimGrid(ceil(matrix_size/1024.0), 1, 1);
-    dim3 dimBlock(1024, 1, 1);
+    dim3 dimGrid(word_count, 1, 1);
+    dim3 dimBlock(dim, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, dim);
 
     if(strcmp(argv[1],"analogy") == 0){
