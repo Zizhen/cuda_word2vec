@@ -45,14 +45,16 @@ int main() {
     // Create int arrays on the CPU.
     // ('h' stands for "host".)
     //
-    int ha[N], hb[N];
+    int *ha = new int[N];
+    int *hb = new int[N];
+
+    // int ha[N], hb[N];
 
     //
     // Create corresponding int arrays on the GPU.
     // ('d' stands for "device".)
     //
-    int *da = new int[N];
-    int *db = new int[N];
+    int *da, *db;
     cudaMalloc((void **)&da, N*sizeof(int));
     cudaMalloc((void **)&db, N*sizeof(int));
 
