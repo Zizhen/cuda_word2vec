@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) {
 
         dim3 dimGrid2(1, 1, 1);
         dim3 dimBlock2(word_count, 1, 1);
+        cout << word_count << endl;
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
