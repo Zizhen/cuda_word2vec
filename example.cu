@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
   if(argc == 2){
     if(strcmp(argv[1], "analogy") == 0)
       cout << "usage: ./a.out analogy path/to/your/model dimension path/to/your/testfile" << endl;
+      cout << "   or: ./a.out analogy path/to/your/model dimension word1 word2 word3" << endl;
     else
       cout << "function not supported" << endl;
   }
@@ -35,7 +36,6 @@ int main(int argc, char* argv[]) {
     // cudaSetDevice(0);
     // cudaMemGetInfo(&f, &t);
     // cout << f << " " << t << endl;
-    cout << "test_0" << endl;
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -46,7 +46,6 @@ int main(int argc, char* argv[]) {
     while(getline(infile,str)){
       word_count++;
     }
-    cout << "test_1" << endl;
 
     int matrix_size = word_count*dimension;
     float *word_matrix_h = new float[matrix_size];
@@ -71,8 +70,8 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(word_matrix_d, word_matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     if(strcmp(argv[1],"analogy") == 0){
-      cout << "test_2" << endl;
-      if(argc == 6){
+      cout << "test" << endl;
+      if(argc == 7){
         int idx_1 = word2vec_map[argv[4]];
         int idx_2 = word2vec_map[argv[5]];
         int idx_3 = word2vec_map[argv[6]];
