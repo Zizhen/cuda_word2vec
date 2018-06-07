@@ -154,6 +154,9 @@ int main(int argc, char* argv[]) {
     }
 
     cudaFree(matrix_d);
+    cudaFree(matrixNorm_d);
+    cudaFree(D);
+    cudaFree(resVec_d);
   }
 
   return 0;
