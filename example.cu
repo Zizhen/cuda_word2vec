@@ -23,13 +23,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-__global__
-void add(int *a, int *b) {
-  int i = blockIdx.x;
-  if (i<N) {
-    b[i] = 2*a[i];
-  }
-}
 
 int main(int argc, char* argv[]) {
   if(argc == 2){
@@ -75,38 +68,17 @@ int main(int argc, char* argv[]) {
     ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)));
     cudaMemcpy(word_matrix_d, word_matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
-    // for (int i = 0; i < 10; i++){
-    //   for (int j = 0; j < 10; j++){
-    //     cout << word_matrix[i*dimension+j] << " ";
-    //   }
-    //   cout << endl;
-    // }
+    if(strcmp(argv[1],"analogy") == 0){
+      if(argc == 6){
+        int idx_1 = word2vec_map[argv[3]];
+        int idx_2 = word2vec_map[argv[4]];
+        int idx_3 = word2vec_map[argv[5]];
+        cout << idx_1 << " " << idx_2 << " " << idx_3 << endl;
+      }
+    }
 
     cudaFree(word_matrix_d);
-
   }
-  ////////////////////////////////
-    int ha[N], hb[N];
-    int *da, *db;
-    cudaMalloc((void **)&da, N*sizeof(int));
-    cudaMalloc((void **)&db, N*sizeof(int));
 
-    for (int i = 0; i<N; ++i) {
-        ha[i] = i;
-    }
-
-    cudaMemcpy(da, ha, N*sizeof(int), cudaMemcpyHostToDevice);
-
-    add<<<N, 1>>>(da, db);
-
-    cudaMemcpy(hb, db, N*sizeof(int), cudaMemcpyDeviceToHost);
-
-    for (int i = 0; i<N; ++i) {
-      cout << hb[i] << endl;
-    }
-
-    cudaFree(da);
-    cudaFree(db);
-
-    return 0;
+  return 0;
 }
