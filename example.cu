@@ -84,8 +84,10 @@ int main(int argc, char* argv[]) {
     infile.close();
     float* matrix_d;
     float* D;
+    float* resVec_d;
     cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&D, dim*sizeof(float));
+    cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     if(strcmp(argv[1],"analogy") == 0){
@@ -108,9 +110,9 @@ int main(int argc, char* argv[]) {
 
         dim3 dimGrid2(1, 1, 1);
         dim3 dimBlock2(1024, 1, 1);
-        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_h, dim, matrix_size);
+        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_d, dim, matrix_size);
 
-        cudaMemcpy(resVec_h, D, word_count*sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
         for(int i = 0; i < 20; i ++){
           cout << resVec_h[i] << endl;
         }
