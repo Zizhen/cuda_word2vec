@@ -47,7 +47,9 @@ int main(int argc, char* argv[]) {
     while(getline(infile,str)){
       word_count++;
     }
+    infile.close();
 
+    infile.open(argv[2]);
     int matrix_size = word_count*dimension;
     float *word_matrix_h = new float[matrix_size];
     int i = 0;
@@ -55,11 +57,9 @@ int main(int argc, char* argv[]) {
       string buf;
       stringstream ss(str);
       ss >> buf;
-      cout << buf << endl;
       word2vec_map[buf] = i;
       int j = 0;
       while (ss >> buf){
-        cout << buf << endl;
         word_matrix_h[i*dimension+j] = stod(buf);
         j++;
       }
