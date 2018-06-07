@@ -139,8 +139,8 @@ int main(int argc, char* argv[]) {
         int idx_3 = word2vec_map[argv[6]];
         dim3 dimGrid1(1, 1, 1);
         dim3 dimBlock1(dim, 1, 1);
-        vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrix_d[idx_1*dim],
-                  &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
+        vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
+                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
 
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
