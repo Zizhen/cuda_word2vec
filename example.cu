@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
     // cout << f << " " << t << endl;
 
     unordered_map<string, int> word2vec_map;
+    string* dictionary;
     string str;
     ifstream infile;
     infile.open(argv[2]);
@@ -75,6 +76,7 @@ int main(int argc, char* argv[]) {
       stringstream ss(str);
       ss >> buf;
       word2vec_map[buf] = i;
+      dictionary[i] = buf;
       int j = 0;
       while (ss >> buf){
         matrix_h[i*dim+j] = stod(buf);
@@ -114,10 +116,9 @@ int main(int argc, char* argv[]) {
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
-        for(int i = word_count-1; i > word_count-20; i --){
-          cout << resVec_h[i] << endl;
-        }
-        cout << std::max_element(resVec_h, resVec_h + word_count) - resVec_h << endl;
+
+        int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
+        cout << dictionary[max] << endl;
       }
     }
 
