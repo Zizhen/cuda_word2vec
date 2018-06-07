@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
           count[i] = word2vec_map.count(argv[4+i]);
           if(count[i] != 1){
               cout << "map does not contain the word: " << argv[4+i] << endl;
-              return;
+              return -1;
           }
         }
         int idx_1 = word2vec_map[argv[4]];
