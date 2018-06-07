@@ -7,6 +7,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <algorithm>
+#include <math.h>
 
 using namespace std;
 
@@ -20,6 +21,13 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
       fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
       if (abort) exit(code);
    }
+}
+
+__global__
+void normalize(float* mat, float* normSum_d, int dim){
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int idx = i/dim;
+  mat[i] /= normSum_d[idx];
 }
 
 __global__
@@ -65,6 +73,7 @@ int main(int argc, char* argv[]) {
     }
     infile.close();
     string dictionary[word_count];
+    float normSum_h[word_count];
 
     infile.open(argv[2]);
     int matrix_size = word_count*dim;
@@ -79,12 +88,15 @@ int main(int argc, char* argv[]) {
       dictionary[i] = buf;
       int j = 0;
       while (ss >> buf){
-        matrix_h[i*dim+j] = stod(buf);
+        matrix_h[i*dim+j] = stof(buf);
+        normSum_h[i] += pow(stof(buf),2);
         j++;
       }
+      normSum_h[i] = sqrt(normSum_h[i])
       i++;
     }
     infile.close();
+
     float* matrix_d;
     float* D;
     float* resVec_d;
@@ -92,6 +104,12 @@ int main(int argc, char* argv[]) {
     cudaMalloc((void **)&D, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
+    float* normSum_d;
+    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
+    cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
+    dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
+    dim3 dimBlock(1024, 1, 1);
+    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, dim);
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
@@ -106,9 +124,9 @@ int main(int argc, char* argv[]) {
         int idx_1 = word2vec_map[argv[4]];
         int idx_2 = word2vec_map[argv[5]];
         int idx_3 = word2vec_map[argv[6]];
-        dim3 dimGrid(1, 1, 1);
-        dim3 dimBlock(dim, 1, 1);
-        vectorManipulation<<<dimGrid, dimBlock>>>(&matrix_d[idx_1*dim],
+        dim3 dimGrid1(1, 1, 1);
+        dim3 dimBlock1(dim, 1, 1);
+        vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrix_d[idx_1*dim],
                   &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
 
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
