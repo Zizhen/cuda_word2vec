@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     // cudaSetDevice(0);
     // cudaMemGetInfo(&f, &t);
     // cout << f << " " << t << endl;
+    cout << "test_0" << endl;
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -45,6 +46,8 @@ int main(int argc, char* argv[]) {
     while(getline(infile,str)){
       word_count++;
     }
+    cout << "test_1" << endl;
+
     int matrix_size = word_count*dimension;
     float *word_matrix_h = new float[matrix_size];
     int i = 0;
@@ -68,7 +71,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(word_matrix_d, word_matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     if(strcmp(argv[1],"analogy") == 0){
-      cout << "test" << endl;
+      cout << "test_2" << endl;
       if(argc == 6){
         int idx_1 = word2vec_map[argv[4]];
         int idx_2 = word2vec_map[argv[5]];
