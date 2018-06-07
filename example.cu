@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
                   &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
 
         dim3 dimGrid2(1, 1, 1);
-        dim3 dimBlock2(256, 256, 1);
+        dim3 dimBlock2(256, 4, 1);
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
