@@ -96,15 +96,15 @@ int main(int argc, char* argv[]) {
                   &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
         cudaMemcpy(resVec_h, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
         for(int i = 0; i < 20; i ++){
-          cout << matrix_d[idx_1*dim+i] << endl;
+          cout << matrix_h[idx_1*dim+i] << endl;
         }
         cout << endl;
         for(int i = 0; i < 20; i ++){
-          cout << matrix_d[idx_2*dim+i] << endl;
+          cout << matrix_h[idx_2*dim+i] << endl;
         }
         cout << endl;
         for(int i = 0; i < 20; i ++){
-          cout << matrix_d[idx_3*dim+i] << endl;
+          cout << matrix_h[idx_3*dim+i] << endl;
         }
       }
     }
