@@ -55,7 +55,6 @@ int main(int argc, char* argv[]) {
     // cout << f << " " << t << endl;
 
     unordered_map<string, int> word2vec_map;
-    string* dictionary;
     string str;
     ifstream infile;
     infile.open(argv[2]);
@@ -65,6 +64,7 @@ int main(int argc, char* argv[]) {
       word_count++;
     }
     infile.close();
+    string dictionary[word_count];
 
     infile.open(argv[2]);
     int matrix_size = word_count*dim;
