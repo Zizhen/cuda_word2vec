@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(word_matrix_d, word_matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     if(strcmp(argv[1],"analogy") == 0){
+      cout << "test" << endl;
       if(argc == 6){
         int idx_1 = word2vec_map[argv[4]];
         int idx_2 = word2vec_map[argv[5]];
