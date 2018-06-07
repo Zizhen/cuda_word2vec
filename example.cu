@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     infile.open(argv[2]);
     int matrix_size = word_count*dim;
     float *matrix_h = new float[matrix_size];
+    float *resVec_h = new float[dim];
     int i = 0;
     while(getline(infile,str)){
       string buf;
@@ -77,7 +78,6 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     if(strcmp(argv[1],"analogy") == 0){
-      cout << "test" << endl;
       if(argc == 7){
         int count[3];
         for(int i = 0; i < 3; i++){
@@ -94,6 +94,10 @@ int main(int argc, char* argv[]) {
         dim3 dimBlock(dim, 1, 1);
         vectorManipulation<<<dimGrid, dimBlock>>>(&matrix_d[idx_1*dim],
                   &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
+        cudaMemcpy(resVec_h, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
+        for(int i = 0; i < dim; i ++){
+          cout << resVec_h[i] << endl;
+        }
       }
     }
 
