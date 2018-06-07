@@ -25,9 +25,10 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(int argc, char* argv[]) {
   if(argc == 2){
-    if(strcmp(argv[1], "analogy") == 0)
+    if(strcmp(argv[1], "analogy") == 0){
       cout << "usage: ./a.out analogy path/to/your/model dimension path/to/your/testfile" << endl;
-      cout << "   or: ./a.out analogy path/to/your/model dimension word1 word2 word3" << endl;
+      cout << "   or: ./a.out analogy path/to/your/model dimension word1 word2 word3" << endl;      
+    }
     else
       cout << "function not supported" << endl;
   }
