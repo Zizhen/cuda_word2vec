@@ -154,10 +154,10 @@ int main(int argc, char* argv[]) {
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
-
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
-        cout << resVec_h[word2vec_map["king"]] << endl;
-        cout << resVec_h[word2vec_map["queen"]] << endl;
+        resVec_h[idx_1] = 0;
+        resVec_h[idx_2] = 0;
+        resVec_h[idx_3] = 0;
         int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
         cout << dictionary[max] << endl;
       }
