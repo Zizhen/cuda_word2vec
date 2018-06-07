@@ -112,12 +112,10 @@ int main(int argc, char* argv[]) {
     float *matRes = new float[matrix_size];
     cudaMemcpy(matRes, matrix_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
 
-    for(int i = 0; i < 10; i ++){
-      for(int j = 0; j < 10; j++){
-        cout << matRes[i*dim+j] << " ";
-      }
-      cout << endl;
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["king"]] << endl;
     }
+    
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
         int count[3];
