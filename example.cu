@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     for(int j = 0; j < 150; j++){
       cout << matrix_h[word2vec_map["king"]*150+j] << endl;
     }
-
+    cout << endl;
     for(int j = 0; j < 150; j++){
       cout << normSum_h[j] << endl;
     }
