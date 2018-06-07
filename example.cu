@@ -113,16 +113,20 @@ int main(int argc, char* argv[]) {
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
-    // float *matRes = new float[matrix_size];
-    // cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
-    //
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["king"]*150+j] << endl;
-    // }
-    // cout << endl;
-    // for(int j = 0; j < 150; j++){
-    //   cout << matrix_h[word2vec_map["king"]*150+j] << endl;
-    // }
+
+    float *matRes = new float[matrix_size];
+    cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["king"]*150+j] << endl;
+    }
+    cout << endl;
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["man"]*150+j] << endl;
+    }
+    cout << endl;
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["woman"]*150+j] << endl;
+    }
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
@@ -147,7 +151,6 @@ int main(int argc, char* argv[]) {
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
-
         int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
         cout << dictionary[max] << endl;
       }
