@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         for(int i = word_count-1; i > word_count-20; i --){
           cout << resVec_h[i] << endl;
         }
-        cout << max_element(resVec_h, resVec_h + word_count) - resVec_h << endl;
+        cout << std::max_element(resVec_h, resVec_h + word_count) - resVec_h << endl;
       }
     }
 
