@@ -51,7 +51,8 @@ int main() {
     // Create corresponding int arrays on the GPU.
     // ('d' stands for "device".)
     //
-    int *da, *db;
+    int *da = new int[N];
+    int *db = new int[N];
     cudaMalloc((void **)&da, N*sizeof(int));
     cudaMalloc((void **)&db, N*sizeof(int));
 
