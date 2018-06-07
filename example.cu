@@ -122,6 +122,10 @@ int main(int argc, char* argv[]) {
       cout << matrix_h[word2vec_map["king"]*150+j] << endl;
     }
 
+    for(int j = 0; j < 150; j++){
+      cout << normSum_h[j] << endl;
+    }
+
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
         int count[3];
