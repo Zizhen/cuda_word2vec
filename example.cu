@@ -11,7 +11,6 @@ using namespace std;
 
 // Compile with:
 // nvcc -o example example.cu
-#define N 10
 
 #define ERROR_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -27,7 +26,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 int main(int argc, char* argv[]) {
   if(argc == 2){
     if(strcmp(argv[1], "analogy") == 0)
-      cout << "usage: ./a.out analogy path/to/your/model path/to/your/testfile dimension" << endl;
+      cout << "usage: ./a.out analogy path/to/your/model dimension path/to/your/testfile" << endl;
     else
       cout << "function not supported" << endl;
   }
@@ -70,9 +69,9 @@ int main(int argc, char* argv[]) {
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 6){
-        int idx_1 = word2vec_map[argv[3]];
-        int idx_2 = word2vec_map[argv[4]];
-        int idx_3 = word2vec_map[argv[5]];
+        int idx_1 = word2vec_map[argv[4]];
+        int idx_2 = word2vec_map[argv[5]];
+        int idx_3 = word2vec_map[argv[6]];
         cout << idx_1 << " " << idx_2 << " " << idx_3 << endl;
       }
     }
