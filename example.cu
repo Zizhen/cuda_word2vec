@@ -54,8 +54,7 @@ int main(int argc, char* argv[]) {
       word_count++;
     }
     int matrix_size = word_count*dimension;
-    float *word_matrix_h = new int[matrix_size];
-
+    float *word_matrix_h = new float[matrix_size];
     int i = 0;
     while(getline(infile,str)){
       string buf;
