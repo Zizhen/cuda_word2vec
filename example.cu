@@ -146,16 +146,18 @@ int main(int argc, char* argv[]) {
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
                   &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
 
-        float *matRes = new float[dim];
-        cudaMemcpy(matRes, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
-        for(int i = 0; i < 150; i ++){
-          cout << matRes[i] << endl;
-        }
+        // float *matRes = new float[dim];
+        // cudaMemcpy(matRes, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
+        // for(int i = 0; i < 150; i ++){
+        //   cout << matRes[i] << endl;
+        // }
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
+        cout << resVec_h[word2vec_map["king"]] << endl;
+        cout << resVec_h[word2vec_map["queen"]] << endl;
         int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
         cout << dictionary[max] << endl;
       }
