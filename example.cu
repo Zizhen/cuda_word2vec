@@ -113,11 +113,11 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(matRes, matrix_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
 
     for(int j = 0; j < 150; j++){
-      cout << matRes[word2vec_map["king"]] << endl;
+      cout << matRes[word2vec_map["king"]*150+j] << endl;
     }
     cout << endl;
     for(int j = 0; j < 150; j++){
-      cout << matrix_h[word2vec_map["king"]] << endl;
+      cout << matrix_h[word2vec_map["king"]*150+j] << endl;
     }
 
     if(strcmp(argv[1],"analogy") == 0){
