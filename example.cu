@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         normSum_h[i] += pow(stof(buf),2);
         j++;
       }
-      normSum_h[i] = sqrt(normSum_h[i])
+      normSum_h[i] = sqrt(normSum_h[i]);
       i++;
     }
     infile.close();
