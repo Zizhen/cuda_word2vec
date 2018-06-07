@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include <algorithm.h>
 
 using namespace std;
 
