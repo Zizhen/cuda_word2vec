@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     float* normSum_d;
     cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
-    dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
+    dim3 dimGrid(ceil(matrix_size/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, dim);
 
