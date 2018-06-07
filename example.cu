@@ -24,9 +24,9 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 __global__
-void normalize(float* mat, float* normSum_d, int dim){
+void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  mat[i] /= normSum_d[blockIdx.x];
+  matrixNorm_d[i] = mat[i] / normSum_d[blockIdx.x];
 }
 
 __global__
@@ -97,9 +97,11 @@ int main(int argc, char* argv[]) {
     infile.close();
 
     float* matrix_d;
+    float* matrixNorm_d;
     float* D;
     float* resVec_d;
     cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
+    cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&D, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
@@ -108,9 +110,9 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
     dim3 dimGrid(word_count, 1, 1);
     dim3 dimBlock(dim, 1, 1);
-    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, dim);
+    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
     float *matRes = new float[matrix_size];
-    cudaMemcpy(matRes, matrix_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
 
     for(int j = 0; j < 150; j++){
       cout << matRes[word2vec_map["king"]*150+j] << endl;
@@ -140,7 +142,7 @@ int main(int argc, char* argv[]) {
 
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
-        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrix_d, D, resVec_d, dim, matrix_size);
+        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
 
