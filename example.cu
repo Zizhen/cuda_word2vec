@@ -24,7 +24,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 __global__
 void vectorManipulation(float* A, float* B, float* C, float* D, int len){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < len) D[i] = A[i] + C[i] - B[i];
+  if (i < len)
+    D[i] = A[i] + C[i] - B[i];
+}
+
+__global__
+void vecMatMultiplication(float* mat, float* vec, float* res, int len){
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  for(int j = 0; j < len; j ++){
+    res[i] += mat[i*len+j] * vec[j];
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -56,7 +65,7 @@ int main(int argc, char* argv[]) {
     infile.open(argv[2]);
     int matrix_size = word_count*dim;
     float *matrix_h = new float[matrix_size];
-    float *resVec_h = new float[dim];
+    float *resVec_h = new float[word_count];
     int i = 0;
     while(getline(infile,str)){
       string buf;
@@ -94,17 +103,14 @@ int main(int argc, char* argv[]) {
         dim3 dimBlock(dim, 1, 1);
         vectorManipulation<<<dimGrid, dimBlock>>>(&matrix_d[idx_1*dim],
                   &matrix_d[idx_2*dim], &matrix_d[idx_3*dim], D, dim);
-        cudaMemcpy(resVec_h, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
+
+        dim3 dimGrid(1, 1, 1);
+        dim3 dimBlock(word_count, 1, 1);
+        vecMatMultiplication<<<dimGrid, dimBlock>>>(matrix_d, D, resVec_h, dim);
+
+        cudaMemcpy(resVec_h, D, word_count*sizeof(float), cudaMemcpyDeviceToHost);
         for(int i = 0; i < 20; i ++){
-          cout << matrix_h[idx_1*dim+i] << endl;
-        }
-        cout << endl;
-        for(int i = 0; i < 20; i ++){
-          cout << matrix_h[idx_2*dim+i] << endl;
-        }
-        cout << endl;
-        for(int i = 0; i < 20; i ++){
-          cout << matrix_h[idx_3*dim+i] << endl;
+          cout << resVec_h[i] << endl;
         }
       }
     }
