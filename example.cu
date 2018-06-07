@@ -39,10 +39,10 @@ int main(int argc, char* argv[]) {
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
-    size_t f, t;
-    cudaSetDevice(0);
-    cudaMemGetInfo(&f, &t);
-    cout << f << " " << t << endl;
+    // size_t f, t;
+    // cudaSetDevice(0);
+    // cudaMemGetInfo(&f, &t);
+    // cout << f << " " << t << endl;
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -53,23 +53,8 @@ int main(int argc, char* argv[]) {
     while(getline(infile,str)){
       word_count++;
     }
-    // cout << word_count << " " << dimension << endl;
     int matrix_size = word_count*dimension;
-    cout << matrix_size << endl;
-    float word_matrix_h[matrix_size];
-    float* word_matrix_d;
-    ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, 10693650*sizeof(float)));
-    cudaError_t err = cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float));
-    if(err == cudaErrorMemoryAllocation){
-      cout << "error" << endl;
-    } else{
-      cout << "you are good" << endl;
-    }
-    cudaSetDevice(0);
-    cudaMemGetInfo(&f, &t);
-    cout << f << " " << t << endl;
-
-    // cout << matrix_size << endl;
+    float *word_matrix_h = new int[matrix_size];
 
     int i = 0;
     while(getline(infile,str)){
@@ -87,6 +72,9 @@ int main(int argc, char* argv[]) {
       i++;
     }
     infile.close();
+    float* word_matrix_d;
+    ERROR_CHECK(cudaMalloc((void **)&word_matrix_d, matrix_size*sizeof(float)));
+    cudaMemcpy(word_matrix_d, word_matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
 
     // for (int i = 0; i < 10; i++){
     //   for (int j = 0; j < 10; j++){
