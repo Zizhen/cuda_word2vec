@@ -5,11 +5,11 @@
 #include "cublas_v2.h"
 #define M 6
 #define N 5
-#define IDX2F(i,j,ld) ((((j)-1)*(ld))+((i)-1))
+#define IDX2C(i,j,ld) (((j)*(ld))+(i))
 
 static __inline__ void modify (cublasHandle_t handle, float *m, int ldm, int n, int p, int q, float alpha, float beta){
-    cublasSscal (handle, n-p+1, &alpha, &m[IDX2F(p,q,ldm)], ldm);
-    cublasSscal (handle, ldm-p+1, &beta, &m[IDX2F(p,q,ldm)], 1);
+    cublasSscal (handle, n-p, &alpha, &m[IDX2C(p,q,ldm)], ldm);
+    cublasSscal (handle, ldm-p, &beta, &m[IDX2C(p,q,ldm)], 1);
 }
 
 int main (void){
@@ -24,9 +24,9 @@ int main (void){
         printf ("host memory allocation failed");
         return EXIT_FAILURE;
     }
-    for (j = 1; j <= N; j++) {
-        for (i = 1; i <= M; i++) {
-            a[IDX2F(i,j,M)] = (float)((i-1) * M + j);
+    for (j = 0; j < N; j++) {
+        for (i = 0; i < M; i++) {
+            a[IDX2C(i,j,M)] = (float)(i * M + j + 1);
         }
     }
     cudaStat = cudaMalloc ((void**)&devPtrA, M*N*sizeof(*a));
@@ -46,7 +46,7 @@ int main (void){
         cublasDestroy(handle);
         return EXIT_FAILURE;
     }
-    modify (handle, devPtrA, M, N, 2, 3, 16.0f, 12.0f);
+    modify (handle, devPtrA, M, N, 1, 2, 16.0f, 12.0f);
     stat = cublasGetMatrix (M, N, sizeof(*a), devPtrA, M, a, M);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf ("data upload failed");
@@ -56,9 +56,9 @@ int main (void){
     }
     cudaFree (devPtrA);
     cublasDestroy(handle);
-    for (j = 1; j <= N; j++) {
-        for (i = 1; i <= M; i++) {
-            printf ("%7.0f", a[IDX2F(i,j,M)]);
+    for (j = 0; j < N; j++) {
+        for (i = 0; i < M; i++) {
+            printf ("%7.0f", a[IDX2C(i,j,M)]);
         }
         printf ("\n");
     }
