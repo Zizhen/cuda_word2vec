@@ -100,19 +100,18 @@ int main(int argc, char* argv[]) {
 
     float* matrix_d;
     float* matrixNorm_d;
-    float* predict_d;
+    float* D;
     float* resVec_d;
     float* normSum_d;
 
     cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
-    cudaMalloc((void **)&predict_d, dim*sizeof(float));
+    cudaMalloc((void **)&D, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
     cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
 
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
-
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
@@ -133,11 +132,11 @@ int main(int argc, char* argv[]) {
         dim3 dimGrid1(1, 1, 1);
         dim3 dimBlock1(dim, 1, 1);
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
-                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], predict_d, dim);
+                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
 
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
-        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, predict_d, resVec_d, dim, matrix_size);
+        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
         resVec_h[idx_1] = 0;
         resVec_h[idx_2] = 0;
@@ -149,7 +148,7 @@ int main(int argc, char* argv[]) {
 
     cudaFree(matrix_d);
     cudaFree(matrixNorm_d);
-    cudaFree(predict_d);
+    cudaFree(D);
     cudaFree(resVec_d);
   }
 
