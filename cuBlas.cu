@@ -1,67 +1,139 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <string.h>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <unordered_map>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <algorithm>
 #include <math.h>
-#include <cuda_runtime.h>
 #include "cublas_v2.h"
-#define M 6
-#define N 5
-#define IDX2C(i,j,ld) (((j)*(ld))+(i))
 
-static __inline__ void modify (cublasHandle_t handle, float *m, int ldm, int n, int p, int q, float alpha, float beta){
-    cublasSscal (handle, n-p, &alpha, &m[IDX2C(p,q,ldm)], ldm);
-    cublasSscal (handle, ldm-p, &beta, &m[IDX2C(p,q,ldm)], 1);
-}
 
-int main (void){
-    cudaError_t cudaStat;
-    cublasStatus_t stat;
+int main(int argc, char* argv[]) {
+  if(argc == 2){
+    if(strcmp(argv[1], "analogy") == 0){
+      cout << "usage: ./a.out analogy path/to/your/model dim path/to/your/testfile" << endl;
+      cout << "   or: ./a.out analogy path/to/your/model dim word1 word2 word3" << endl;
+    }
+    else
+      cout << "function not supported" << endl;
+  }
+  else if (argc > 2){
+    // size_t f, t;
+    // cudaSetDevice(0);
+    // cudaMemGetInfo(&f, &t);
+    // cout << f << " " << t << endl;
+
+    unordered_map<string, int> word2vec_map;
+    string str;
+    ifstream infile;
+    infile.open(argv[2]);
+    int word_count = 0;
+    int dim = stod(argv[3]);
     cublasHandle_t handle;
-    int i, j;
-    float* devPtrA;
-    float* a = 0;
-    a = (float *)malloc (M * N * sizeof (*a));
-    if (!a) {
-        printf ("host memory allocation failed");
-        return EXIT_FAILURE;
+
+    while(getline(infile,str)){
+      word_count++;
     }
-    for (j = 0; j < N; j++) {
-        for (i = 0; i < M; i++) {
-            a[IDX2C(i,j,M)] = (float)(i * M + j + 1);
+    infile.close();
+    string dictionary[word_count];
+    float normSum_h[word_count];
+
+    infile.open(argv[2]);
+    int matrix_size = word_count*dim;
+    float *matrix_h = new float[matrix_size];
+    float *resVec_h = new float[word_count];
+    int i = 0;
+    while(getline(infile,str)){
+      string buf;
+      stringstream ss(str);
+      ss >> buf;
+      word2vec_map[buf] = i;
+      dictionary[i] = buf;
+      int j = 0;
+      while (ss >> buf){
+        matrix_h[i*dim+j] = stof(buf);
+        normSum_h[i] += pow(stof(buf),2);
+        j++;
+      }
+      normSum_h[i] = sqrt(normSum_h[i]);
+      i++;
+    }
+    infile.close();
+
+    // no need for change up to here
+    cublasCreate(&handle);
+    float* matrix_d;
+    float* matrixNorm_d;
+    float* D;
+    float* resVec_d;
+    float* normSum_d;
+
+    cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
+    cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
+    cudaMalloc((void **)&D, dim*sizeof(float));
+    cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
+    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
+
+    cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
+
+    // cublasSetMatrix (word_count, dim, sizeof(float), matrix_h, word_count, matrix_d, word_count);
+    // cublasSetMatrix (word_count, 1, sizeof(float), normSum_h, word_count, normSum_d, word_count);
+
+    dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
+    dim3 dimBlock(1024, 1, 1);
+    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
+
+    if(strcmp(argv[1],"analogy") == 0){
+      if(argc == 7){
+        int count[3];
+        for(int i = 0; i < 3; i++){
+          count[i] = word2vec_map.count(argv[4+i]);
+          if(count[i] != 1){
+              cout << "map does not contain the word: " << argv[4+i] << endl;
+              return -1;
+          }
         }
+        int idx_1 = word2vec_map[argv[4]];
+        int idx_2 = word2vec_map[argv[5]];
+        int idx_3 = word2vec_map[argv[6]];
+        dim3 dimGrid1(1, 1, 1);
+        dim3 dimBlock1(dim, 1, 1);
+        vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
+                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
+
+        const float alpha = 1.0f;
+        const float beta = 0.0f;
+        cublasSgemm(
+          handle,
+          CUBLAS_OP_N,
+          CUBLAS_OP_N,
+          word_count, 1, dim,
+          &alpha,
+          matrixNorm_d, word_count,
+          D, dim,
+          &beta,
+          resVec_d, word_count
+        );
+
+        cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
+        resVec_h[idx_1] = 0;
+        resVec_h[idx_2] = 0;
+        resVec_h[idx_3] = 0;
+        int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
+        cout << dictionary[max] << endl;
+      }
     }
-    cudaStat = cudaMalloc ((void**)&devPtrA, M*N*sizeof(*a));
-    if (cudaStat != cudaSuccess) {
-        printf ("device memory allocation failed");
-        return EXIT_FAILURE;
-    }
-    stat = cublasCreate(&handle);
-    if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf ("CUBLAS initialization failed\n");
-        return EXIT_FAILURE;
-    }
-    stat = cublasSetMatrix (M, N, sizeof(*a), a, M, devPtrA, M);
-    if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf ("data download failed");
-        cudaFree (devPtrA);
-        cublasDestroy(handle);
-        return EXIT_FAILURE;
-    }
-    modify (handle, devPtrA, M, N, 1, 2, 16.0f, 12.0f);
-    stat = cublasGetMatrix (M, N, sizeof(*a), devPtrA, M, a, M);
-    if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf ("data upload failed");
-        cudaFree (devPtrA);
-        cublasDestroy(handle);
-        return EXIT_FAILURE;
-    }
-    cudaFree (devPtrA);
+
     cublasDestroy(handle);
-    for (j = 0; j < N; j++) {
-        for (i = 0; i < M; i++) {
-            printf ("%7.0f", a[IDX2C(i,j,M)]);
-        }
-        printf ("\n");
-    }
-    free(a);
-    return EXIT_SUCCESS;
+    cudaFree(matrix_d);
+    cudaFree(matrixNorm_d);
+    cudaFree(D);
+    cudaFree(resVec_d);
+  }
+
+  return 0;
 }
