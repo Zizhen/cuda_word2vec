@@ -60,10 +60,10 @@ int main(int argc, char* argv[]) {
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
-    size_t f, t;
-    cudaSetDevice(0);
-    cudaMemGetInfo(&f, &t);
-    cout << f << " " << t << endl;
+    // size_t f, t;
+    // cudaSetDevice(0);
+    // cudaMemGetInfo(&f, &t);
+    // cout << f << " " << t << endl;
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -161,7 +161,6 @@ int main(int argc, char* argv[]) {
         resVec_h[idx_2] = 0;
         resVec_h[idx_3] = 0;
         int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
-        cout << max << endl;
         cout << dictionary[max] << endl;
       }
     }
