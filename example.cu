@@ -24,10 +24,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 __global__
-void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim){
+void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim, int max){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  for(int j = 0; j < dim; j++){
-    matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
+  if(i < max){
+    for(int j = 0; j < dim; j++){
+      matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
+    }
   }
 }
 
@@ -112,25 +114,21 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
-    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
+    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim, word_count);
 
-    for(int i = 0; i < 150; i ++){
-      cout << normSum_h[i] << endl;
+    float *matRes = new float[matrix_size];
+    cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["king"]*150+j] << endl;
     }
-
-    // float *matRes = new float[matrix_size];
-    // cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["king"]*150+j] << endl;
-    // }
-    // cout << endl;
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["man"]*150+j] << endl;
-    // }
-    // cout << endl;
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["woman"]*150+j] << endl;
-    // }
+    cout << endl;
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["man"]*150+j] << endl;
+    }
+    cout << endl;
+    for(int j = 0; j < 150; j++){
+      cout << matRes[word2vec_map["woman"]*150+j] << endl;
+    }
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
