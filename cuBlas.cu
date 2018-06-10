@@ -168,11 +168,14 @@ int main(int argc, char* argv[]) {
       }
     }
 
+    cout << "test 3" << endl;
     cublasDestroy(handle);
+    cout << "test 4" << endl;
     cudaFree(matrix_d);
     cudaFree(matrixNorm_d);
     cudaFree(predict_d);
     cudaFree(resVec_d);
+    cout << "test 5" << endl;
   }
 
   return 0;
