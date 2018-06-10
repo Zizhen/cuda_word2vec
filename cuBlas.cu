@@ -105,13 +105,13 @@ int main(int argc, char* argv[]) {
     cublasCreate(&handle);
     float* matrix_d;
     float* matrixNorm_d;
-    float* D;
+    float* predict_d;
     float* resVec_d;
     float* normSum_d;
 
     cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
-    cudaMalloc((void **)&D, dim*sizeof(float));
+    cudaMalloc((void **)&predict_d, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
     cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
 
@@ -141,10 +141,11 @@ int main(int argc, char* argv[]) {
         dim3 dimGrid1(1, 1, 1);
         dim3 dimBlock1(dim, 1, 1);
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
-                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
+                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], predict_d, dim);
 
         const float alpha = 1.0f;
         const float beta = 0.0f;
+        cout << "test 1" << endl;
         cublasSgemm(
           handle,
           CUBLAS_OP_N,
@@ -152,10 +153,11 @@ int main(int argc, char* argv[]) {
           word_count, 1, dim,
           &alpha,
           matrixNorm_d, word_count,
-          D, dim,
+          predict_d, dim,
           &beta,
           resVec_d, word_count
         );
+        cout << "test 2" << endl;
 
         cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
         resVec_h[idx_1] = 0;
@@ -169,7 +171,7 @@ int main(int argc, char* argv[]) {
     cublasDestroy(handle);
     cudaFree(matrix_d);
     cudaFree(matrixNorm_d);
-    cudaFree(D);
+    cudaFree(predict_d);
     cudaFree(resVec_d);
   }
 
