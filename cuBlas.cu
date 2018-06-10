@@ -10,6 +10,44 @@
 #include <math.h>
 #include "cublas_v2.h"
 
+using namespace std;
+
+// Compile with:
+// nvcc -o example example.cu
+#define ERROR_CHECK(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess)
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
+__global__
+void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim){
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  for(int j = 0; j < dim; j++){
+    matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
+  }
+}
+
+__global__
+void vectorManipulation(float* A, float* B, float* C, float* D, int len){
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < len)
+    D[i] = A[i] + C[i] - B[i];
+}
+
+__global__
+void vecMatMultiplication(float* mat, float* vec, float* res, int len, int max){
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if(i < max){
+    for(int j = 0; j < len; j ++){
+      res[i] += mat[i*len+j] * vec[j];
+    }
+  }
+}
 
 int main(int argc, char* argv[]) {
   if(argc == 2){
