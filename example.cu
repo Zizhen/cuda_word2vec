@@ -102,15 +102,13 @@ int main(int argc, char* argv[]) {
     float* matrixNorm_d;
     float* D;
     float* resVec_d;
-    float* normSum_d;
-
     cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&D, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
-    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
-
     cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
+    float* normSum_d;
+    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
     cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
