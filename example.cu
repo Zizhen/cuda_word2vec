@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
         resVec_h[idx_2] = 0;
         resVec_h[idx_3] = 0;
         int max = std::max_element(resVec_h, resVec_h + word_count) - resVec_h;
+        cout << max << endl;
         cout << dictionary[max] << endl;
       }
     }
