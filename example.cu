@@ -114,16 +114,8 @@ int main(int argc, char* argv[]) {
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim);
 
-    for(int j = 0; j < 150; j++){
-      cout << matrix_h[word2vec_map["king"]*150+j] << endl;
-    }
-    cout << endl;
-    for(int j = 0; j < 150; j++){
-      cout << matrix_h[word2vec_map["man"]*150+j] << endl;
-    }
-    cout << endl;
-    for(int j = 0; j < 150; j++){
-      cout << matrix_h[word2vec_map["woman"]*150+j] << endl;
+    for(int i = 0; i < 150; i ++){
+      cout << normSum_h[i] << endl;
     }
 
     // float *matRes = new float[matrix_size];
