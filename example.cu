@@ -60,10 +60,10 @@ int main(int argc, char* argv[]) {
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
-    // size_t f, t;
-    // cudaSetDevice(0);
-    // cudaMemGetInfo(&f, &t);
-    // cout << f << " " << t << endl;
+    size_t f, t;
+    cudaSetDevice(0);
+    cudaMemGetInfo(&f, &t);
+    cout << f << " " << t << endl;
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -116,7 +116,6 @@ int main(int argc, char* argv[]) {
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim, word_count);
 
-    cout << word2vec_map["king"] << endl;
     // float *matRes = new float[matrix_size];
     // cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
     // for(int j = 0; j < 150; j++){
