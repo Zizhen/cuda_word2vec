@@ -36,6 +36,7 @@ void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim, int m
 __global__
 void vectorManipulation(float* A, float* B, float* C, float* D, int len){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
+  printf("test\n");
   if (i < len)
     D[i] = A[i] + C[i] - B[i];
 }
@@ -111,19 +112,19 @@ int main(int argc, char* argv[]) {
     dim3 dimBlock(1024, 1, 1);
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim, word_count);
 
-    float *matRes = new float[matrix_size];
-    cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
-    for(int j = 0; j < 150; j++){
-      cout << matRes[word2vec_map["king"]*150+j] << endl;
-    }
-    cout << endl;
-    for(int j = 0; j < 150; j++){
-      cout << matRes[word2vec_map["man"]*150+j] << endl;
-    }
-    cout << endl;
-    for(int j = 0; j < 150; j++){
-      cout << matRes[word2vec_map["woman"]*150+j] << endl;
-    }
+    // float *matRes = new float[matrix_size];
+    // cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
+    // for(int j = 0; j < 150; j++){
+    //   cout << matRes[word2vec_map["king"]*150+j] << endl;
+    // }
+    // cout << endl;
+    // for(int j = 0; j < 150; j++){
+    //   cout << matRes[word2vec_map["man"]*150+j] << endl;
+    // }
+    // cout << endl;
+    // for(int j = 0; j < 150; j++){
+    //   cout << matRes[word2vec_map["woman"]*150+j] << endl;
+    // }
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
