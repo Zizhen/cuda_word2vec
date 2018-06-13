@@ -8,6 +8,7 @@
 #include <cuda_runtime_api.h>
 #include <algorithm>
 #include <math.h>
+#include "cuPrintf.cu"
 
 using namespace std;
 
