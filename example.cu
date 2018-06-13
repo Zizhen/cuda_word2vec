@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         dim3 dimBlock1(dim, 1, 1);
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
                   &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
-
+        cudaDeviceSynchronize();
         // float *matRes = new float[dim];
         // cudaMemcpy(matRes, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
         // for(int i = 0; i < 150; i ++){
