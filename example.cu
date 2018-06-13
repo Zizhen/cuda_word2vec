@@ -8,7 +8,6 @@
 #include <cuda_runtime_api.h>
 #include <algorithm>
 #include <math.h>
-#include "cuPrintf.cu"
 
 using namespace std;
 
@@ -27,6 +26,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 __global__
 void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim, int max){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
+  printf("test\n");
   if(i < max){
     for(int j = 0; j < dim; j++){
       matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
