@@ -20,6 +20,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    {
       fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
       if (abort) exit(code);
+   } else{
+     cout << "cudaSuccess" << endl;
    }
 }
 
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
     float* matrixNorm_d;
     float* D;
     float* resVec_d;
-    cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
+    ERROR_CHECK(cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float)));
     cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
     cudaMalloc((void **)&D, dim*sizeof(float));
     cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
