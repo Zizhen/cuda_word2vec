@@ -20,8 +20,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    {
       fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
       if (abort) exit(code);
-   } else{
-     cout << "cudaSuccess" << endl;
    }
 }
 
@@ -38,7 +36,6 @@ void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim, int m
 __global__
 void vectorManipulation(float* A, float* B, float* C, float* D, int len){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  printf("test\n");
   if (i < len)
     D[i] = A[i] + C[i] - B[i];
 }
@@ -54,6 +51,11 @@ void vecMatMultiplication(float* mat, float* vec, float* res, int len, int max){
 }
 
 int main(int argc, char* argv[]) {
+  float elapsed=0;
+  cudaEvent_t start, stop;
+  ERROR_CHECK(cudaEventCreate(&start));
+  ERROR_CHECK(cudaEventCreate(&stop));
+
   if(argc == 2){
     if(strcmp(argv[1], "analogy") == 0){
       cout << "usage: ./a.out analogy path/to/your/model dim path/to/your/testfile" << endl;
@@ -102,31 +104,28 @@ int main(int argc, char* argv[]) {
     float* matrixNorm_d;
     float* D;
     float* resVec_d;
-    ERROR_CHECK(cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float)));
-    cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
-    cudaMalloc((void **)&D, dim*sizeof(float));
-    cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
-    cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
     float* normSum_d;
-    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
-    cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
+
+    ERROR_CHECK(cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&D, dim*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&resVec_d, word_count*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&normSum_d, word_count*sizeof(float)));
+
+    ERROR_CHECK(cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice));
+    ERROR_CHECK(cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice));
+
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
+    ERROR_CHECK(cudaEventRecord(start, 0));
     normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim, word_count);
+    ERROR_CHECK(cudaEventRecord(stop, 0));
+    ERROR_CHECK(cudaEventSynchronize(stop));
+    ERROR_CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+    cout << "Normalization takes " << elapsed << " ms" << endl;
 
-    // float *matRes = new float[matrix_size];
-    // cudaMemcpy(matRes, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["king"]*150+j] << endl;
-    // }
-    // cout << endl;
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["man"]*150+j] << endl;
-    // }
-    // cout << endl;
-    // for(int j = 0; j < 150; j++){
-    //   cout << matRes[word2vec_map["woman"]*150+j] << endl;
-    // }
+    float *matrixNorm_h = new float[matrix_size];
+    ERROR_CHECK(cudaMemcpy(matrixNorm_h, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
@@ -145,16 +144,19 @@ int main(int argc, char* argv[]) {
         dim3 dimBlock1(dim, 1, 1);
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
                   &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
-        cudaDeviceSynchronize();
-        // float *matRes = new float[dim];
-        // cudaMemcpy(matRes, D, dim*sizeof(float), cudaMemcpyDeviceToHost);
-        // for(int i = 0; i < 150; i ++){
-        //   cout << matRes[i] << endl;
-        // }
+        ERROR_CHECK(cudaDeviceSynchronize());
         dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
         dim3 dimBlock2(1024, 1, 1);
+        ERROR_CHECK(cudaEventRecord(start, 0));
         vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
-        cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
+        ERROR_CHECK(cudaEventRecord(stop, 0));
+        ERROR_CHECK(cudaEventSynchronize(stop));
+        ERROR_CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+        ERROR_CHECK(cudaEventDestroy(start));
+        ERROR_CHECK(cudaEventDestroy(stop));
+        cout << "Vector-matrix multiplication takes " << elapsed << " ms" << endl;
+
+        ERROR_CHECK(cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost));
         resVec_h[idx_1] = 0;
         resVec_h[idx_2] = 0;
         resVec_h[idx_3] = 0;
@@ -163,10 +165,10 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    cudaFree(matrix_d);
-    cudaFree(matrixNorm_d);
-    cudaFree(D);
-    cudaFree(resVec_d);
+    ERROR_CHECK(cudaFree(matrix_d));
+    ERROR_CHECK(cudaFree(matrixNorm_d));
+    ERROR_CHECK(cudaFree(D));
+    ERROR_CHECK(cudaFree(resVec_d));
   }
 
   return 0;

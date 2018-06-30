@@ -1,0 +1,22 @@
+rai:
+  version: 0.1
+  image: nvidia/cuda:8.0-devel-ubuntu16.04
+resources:
+  cpu:
+    architecture: amd64
+  gpu:
+    architecture: pascal
+    count: 1 # tell the system that you're using a gpu
+  network: false
+commands:
+  build:
+    - nvidia-smi
+    - ls /src
+    - nvcc -std=c++11 /src/example.cu
+    - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 king man woman
+    # - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris berlin
+    # - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris beijing
+    - nvcc -std=c++11 /src/cuBlas.cu -lcublas -o cuBlas
+    - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 king man woman
+    # - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris berlin
+    # - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris beijing
