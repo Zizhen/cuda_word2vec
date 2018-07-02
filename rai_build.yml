@@ -12,11 +12,13 @@ commands:
   build:
     - nvidia-smi
     - ls /src
-    - nvcc -std=c++11 /src/example.cu
-    - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 king man woman
+
+    # - nvcc -std=c++11 /src/example.cu
+    # - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 king man woman
     # - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris berlin
     # - ./a.out analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris beijing
+
     - nvcc -std=c++11 /src/cuBlas.cu -lcublas -o cuBlas
     - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 king man woman
-    # - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris berlin
-    # - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris beijing
+    - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris berlin
+    - ./cuBlas analogy /src/pretrained_models/GloVe/vectors_150.txt 150 france paris beijing

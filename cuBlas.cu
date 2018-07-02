@@ -25,12 +25,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 __global__
-void normalize_T(float* mat, float* normSum_d, float* matrixNorm_d, int word_count, int dim){
+void normalize_T(float* mat, float* normSum_d, float* matrixNorm_d, float* matrixNorm_T, int word_count, int dim){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if(i < word_count){
     for(int j = 0; j < dim; j++){
-      // matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
-      matrixNorm_d[j*word_count+i] = mat[i*dim+j] / normSum_d[i];
+      matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
+      matrixNorm_T[j*word_count+i] = mat[i*dim+j] / normSum_d[i];
     }
   }
 }
@@ -66,6 +66,10 @@ int main(int argc, char* argv[]) {
     // cudaSetDevice(0);
     // cudaMemGetInfo(&f, &t);
     // cout << f << " " << t << endl;
+    float elapsed=0;
+    cudaEvent_t start, stop;
+    ERROR_CHECK(cudaEventCreate(&start));
+    ERROR_CHECK(cudaEventCreate(&stop));
 
     unordered_map<string, int> word2vec_map;
     string str;
@@ -108,28 +112,25 @@ int main(int argc, char* argv[]) {
     cublasCreate(&handle);
     float* matrix_d;
     float* matrixNorm_d;
+    float* matrixNorm_T;
     float* predict_d;
     float* resVec_d;
     float* normSum_d;
 
-    cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float));
-    cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float));
-    cudaMalloc((void **)&predict_d, dim*sizeof(float));
-    cudaMalloc((void **)&resVec_d, word_count*sizeof(float));
-    cudaMalloc((void **)&normSum_d, word_count*sizeof(float));
+    ERROR_CHECK(cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&matrixNorm_T, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&predict_d, dim*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&resVec_d, word_count*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&normSum_d, word_count*sizeof(float)));
 
-    cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice);
+    ERROR_CHECK(cudaMemcpy(matrix_d, matrix_h, matrix_size*sizeof(float), cudaMemcpyHostToDevice));
+    ERROR_CHECK(cudaMemcpy(normSum_d, normSum_h, word_count*sizeof(float), cudaMemcpyHostToDevice));
 
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
-    normalize_T<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, word_count, dim);
-    cudaDeviceSynchronize();
-
-    // float *matrixNorm_h = new float[matrix_size];
-    // cudaMemcpy(matrixNorm_h, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost);
-    // for(int i = 0; i < 10; i++)
-    //   cout << matrixNorm_h[i*word_count] << endl;
+    normalize_T<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, matrixNorm_T, word_count, dim);
+    ERROR_CHECK(cudaDeviceSynchronize());
 
     if(strcmp(argv[1],"analogy") == 0){
       if(argc == 7){
@@ -149,57 +150,31 @@ int main(int argc, char* argv[]) {
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
                   &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], predict_d, dim);
 
-        cudaDeviceSynchronize();
+        ERROR_CHECK(cudaDeviceSynchronize());
         const float alpha = 1.0f;
         const float beta = 0.0f;
 
-        // float h_a[12] = {1,1,1,2,2,2,3,3,3,4,4,4};
-        // float h_b[4] = {1,1,1,1};
-        // float* h_c = new float[3];
-        // float* d_a;
-        // float* d_b;
-        // float* d_c;
-        //
-        // cudaMalloc((void **)&d_a, 12*sizeof(float));
-        // cudaMalloc((void **)&d_b, 4*sizeof(float));
-        // cudaMalloc((void **)&d_c, 3*sizeof(float));
-        //
-        // cudaMemcpy(d_a, h_a, 12*sizeof(float), cudaMemcpyHostToDevice);
-        // cudaMemcpy(d_b, h_b, 4*sizeof(float), cudaMemcpyHostToDevice);
-
-        // cublasSetMatrix(3, 3, sizeof(*h_a), h_a, 3, d_a, 3);
-        // cublasSetVector(3, sizeof(*h_b), h_b, 1, d_b, 1);
-
-        // cublasSgemm(
-        //   handle,
-        //   CUBLAS_OP_N,
-        //   CUBLAS_OP_N,
-        //   3, 1, 4,
-        //   &alpha,
-        //   d_a, 3,
-        //   d_b, 4,
-        //   &beta,
-        //   d_c, 3
-        // );
-        // cudaMemcpy(h_c, d_c, 3*sizeof(float), cudaMemcpyDeviceToHost);
-        // for(int i = 0; i < 3; i++)
-        //   cout << h_c[i] << endl;
-
+        ERROR_CHECK(cudaEventRecord(start, 0));
         cublasSgemm(
           handle,
           CUBLAS_OP_N,
           CUBLAS_OP_N,
           word_count, 1, dim,
           &alpha,
-          matrixNorm_d, word_count,
+          matrixNorm_T, word_count,
           predict_d, dim,
           &beta,
           resVec_d, word_count
         );
-        cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost);
+        ERROR_CHECK(cudaEventRecord(stop, 0));
+        ERROR_CHECK(cudaEventSynchronize(stop));
+        ERROR_CHECK(cudaEventElapsedTime(&elapsed, start, stop));
+        ERROR_CHECK(cudaEventDestroy(start));
+        ERROR_CHECK(cudaEventDestroy(stop));
+        cout << "Vector-matrix multiplication takes " << elapsed << " ms" << endl;
 
-        for(int i = word_count; i > word_count-10; i--)
-          cout << resVec_h[i] << endl;
+        ERROR_CHECK(cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost));
+
         resVec_h[idx_1] = 0;
         resVec_h[idx_2] = 0;
         resVec_h[idx_3] = 0;
@@ -209,10 +184,13 @@ int main(int argc, char* argv[]) {
     }
 
     cublasDestroy(handle);
-    cudaFree(matrix_d);
-    cudaFree(matrixNorm_d);
-    cudaFree(predict_d);
-    cudaFree(resVec_d);
+    ERROR_CHECK(cudaFree(matrix_d));
+    ERROR_CHECK(cudaFree(matrixNorm_d));
+    ERROR_CHECK(cudaFree(matrixNorm_T));
+    ERROR_CHECK(cudaFree(predict_d));
+    ERROR_CHECK(cudaFree(resVec_d));
+    ERROR_CHECK(cudaFree(normSum_d));
+
   }
 
   return 0;
