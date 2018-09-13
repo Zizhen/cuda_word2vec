@@ -8,6 +8,7 @@
 #include <cuda_runtime_api.h>
 #include <algorithm>
 #include <math.h>
+#include "cublas_v2.h"
 
 using namespace std;
 
@@ -24,11 +25,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 __global__
-void normalize(float* mat, float* normSum_d, float* matrixNorm_d, int dim, int max){
+void normalize_T(float* mat, float* normSum_d, float* matrixNorm_d, float* matrixNorm_T, int word_count, int dim){
   int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if(i < max){
+  if(i < word_count){
     for(int j = 0; j < dim; j++){
       matrixNorm_d[i*dim+j] = mat[i*dim+j] / normSum_d[i];
+      matrixNorm_T[j*word_count+i] = mat[i*dim+j] / normSum_d[i];
     }
   }
 }
@@ -51,11 +53,6 @@ void vecMatMultiplication(float* mat, float* vec, float* res, int len, int max){
 }
 
 int main(int argc, char* argv[]) {
-  float elapsed=0;
-  cudaEvent_t start, stop;
-  ERROR_CHECK(cudaEventCreate(&start));
-  ERROR_CHECK(cudaEventCreate(&stop));
-
   if(argc == 2){
     if(strcmp(argv[1], "analogy") == 0){
       cout << "usage: ./a.out analogy path/to/your/model dim path/to/your/testfile" << endl;
@@ -65,12 +62,25 @@ int main(int argc, char* argv[]) {
       cout << "function not supported" << endl;
   }
   else if (argc > 2){
+    float elapsed=0;
+    cudaEvent_t start, stop;
+    ERROR_CHECK(cudaEventCreate(&start));
+    ERROR_CHECK(cudaEventCreate(&stop));
+    cublasHandle_t handle;
+
     unordered_map<string, int> word2vec_map;
     string str;
     ifstream infile;
     infile.open(argv[2]);
     int word_count = 0;
-    int dim = stod(argv[3]);
+
+    getline(infile,str);
+    word_count++;
+    stringstream sss(str);
+    int dim = -1;
+    string buff;
+    while(sss >> buff)
+      dim ++;
     while(getline(infile,str)){
       word_count++;
     }
@@ -100,15 +110,19 @@ int main(int argc, char* argv[]) {
     }
     infile.close();
 
+    // no need for change up to here
+    cublasCreate(&handle);
     float* matrix_d;
     float* matrixNorm_d;
-    float* D;
+    float* matrixNorm_T;
+    float* predict_d;
     float* resVec_d;
     float* normSum_d;
 
     ERROR_CHECK(cudaMalloc((void **)&matrix_d, matrix_size*sizeof(float)));
     ERROR_CHECK(cudaMalloc((void **)&matrixNorm_d, matrix_size*sizeof(float)));
-    ERROR_CHECK(cudaMalloc((void **)&D, dim*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&matrixNorm_T, matrix_size*sizeof(float)));
+    ERROR_CHECK(cudaMalloc((void **)&predict_d, dim*sizeof(float)));
     ERROR_CHECK(cudaMalloc((void **)&resVec_d, word_count*sizeof(float)));
     ERROR_CHECK(cudaMalloc((void **)&normSum_d, word_count*sizeof(float)));
 
@@ -117,46 +131,50 @@ int main(int argc, char* argv[]) {
 
     dim3 dimGrid(ceil(word_count/1024.0), 1, 1);
     dim3 dimBlock(1024, 1, 1);
-    ERROR_CHECK(cudaEventRecord(start, 0));
-    normalize<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, dim, word_count);
-    ERROR_CHECK(cudaEventRecord(stop, 0));
-    ERROR_CHECK(cudaEventSynchronize(stop));
-    ERROR_CHECK(cudaEventElapsedTime(&elapsed, start, stop));
-    cout << "Normalization takes " << elapsed << " ms" << endl;
-
-    float *matrixNorm_h = new float[matrix_size];
-    ERROR_CHECK(cudaMemcpy(matrixNorm_h, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
+    normalize_T<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, matrixNorm_T, word_count, dim);
+    ERROR_CHECK(cudaDeviceSynchronize());
 
     if(strcmp(argv[1],"analogy") == 0){
-      if(argc == 7){
+      if(argc == 6){
         int count[3];
         for(int i = 0; i < 3; i++){
-          count[i] = word2vec_map.count(argv[4+i]);
+          count[i] = word2vec_map.count(argv[3+i]);
           if(count[i] != 1){
-              cout << "map does not contain the word: " << argv[4+i] << endl;
+              cout << "model does not contain the word: " << argv[3+i] << endl;
               return -1;
           }
         }
-        int idx_1 = word2vec_map[argv[4]];
-        int idx_2 = word2vec_map[argv[5]];
-        int idx_3 = word2vec_map[argv[6]];
+        int idx_1 = word2vec_map[argv[3]];
+        int idx_2 = word2vec_map[argv[4]];
+        int idx_3 = word2vec_map[argv[5]];
         dim3 dimGrid1(1, 1, 1);
         dim3 dimBlock1(dim, 1, 1);
         vectorManipulation<<<dimGrid1, dimBlock1>>>(&matrixNorm_d[idx_1*dim],
-                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], D, dim);
+                  &matrixNorm_d[idx_2*dim], &matrixNorm_d[idx_3*dim], predict_d, dim);
+
         ERROR_CHECK(cudaDeviceSynchronize());
-        dim3 dimGrid2(ceil(word_count/1024.0), 1, 1);
-        dim3 dimBlock2(1024, 1, 1);
-        ERROR_CHECK(cudaEventRecord(start, 0));
-        vecMatMultiplication<<<dimGrid2, dimBlock2>>>(matrixNorm_d, D, resVec_d, dim, matrix_size);
-        ERROR_CHECK(cudaEventRecord(stop, 0));
-        ERROR_CHECK(cudaEventSynchronize(stop));
-        ERROR_CHECK(cudaEventElapsedTime(&elapsed, start, stop));
-        ERROR_CHECK(cudaEventDestroy(start));
-        ERROR_CHECK(cudaEventDestroy(stop));
-        cout << "Vector-matrix multiplication takes " << elapsed << " ms" << endl;
+        const float alpha = 1.0f;
+        const float beta = 0.0f;
+
+        cublasSgemv(
+          handle, CUBLAS_OP_N,
+          word_count, dim,
+          &alpha, matrixNorm_T, word_count,
+          predict_d, 1, &beta,
+          resVec_d, 1
+        );
+        
+        // cublasSgemm(
+        //   handle, CUBLAS_OP_N, CUBLAS_OP_N,
+        //   word_count, 1, dim,
+        //   &alpha, matrixNorm_T, word_count,
+        //   predict_d, dim, &beta,
+        //   resVec_d, word_count
+        // );
+        // cout << "Vector-matrix multiplication takes " << elapsed << " ms" << endl;
 
         ERROR_CHECK(cudaMemcpy(resVec_h, resVec_d, word_count*sizeof(float), cudaMemcpyDeviceToHost));
+
         resVec_h[idx_1] = 0;
         resVec_h[idx_2] = 0;
         resVec_h[idx_3] = 0;
@@ -165,10 +183,14 @@ int main(int argc, char* argv[]) {
       }
     }
 
+    cublasDestroy(handle);
     ERROR_CHECK(cudaFree(matrix_d));
     ERROR_CHECK(cudaFree(matrixNorm_d));
-    ERROR_CHECK(cudaFree(D));
+    ERROR_CHECK(cudaFree(matrixNorm_T));
+    ERROR_CHECK(cudaFree(predict_d));
     ERROR_CHECK(cudaFree(resVec_d));
+    ERROR_CHECK(cudaFree(normSum_d));
+
   }
 
   return 0;
