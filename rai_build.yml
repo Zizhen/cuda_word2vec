@@ -27,15 +27,22 @@ commands:
     # - /src/commands.sh
 
     - nvcc -std=c++11 /src/main.cu -lcublas -o cudaw2v
-    # - nvprof ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt king man woman
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt france paris berlin
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt france paris beijing
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt illinois chicago houston
+    - nvprof ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt king man woman
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt france paris berlin
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt france paris beijing
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt illinois chicago houston
 
-    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/capital-common-countries.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/city-in-state.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/currency.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/family.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram4-superlative.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram8-plural.txt
-    # - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram9-plural-verbs.txt
+    - nvprof ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/capital-common-countries.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/capital-world.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/city-in-state.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/currency.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/family.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram1-adjective-to-adverb.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram2-opposite.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram3-comparative.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram4-superlative.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram5-present-participle.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram6-nationality-adjective.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram7-past-tense.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram8-plural.txt
+    - ./cudaw2v analogy /src/pretrained_models/GloVe/vectors_150.txt /src/analogy_data/gram9-plural-verbs.txt

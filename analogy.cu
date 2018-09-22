@@ -298,45 +298,12 @@ int analogy_batch_query(string filename, string queryFile) {
     normalize_T<<<dimGrid, dimBlock>>>(matrix_d, normSum_d, matrixNorm_d, matrixNorm_T, word_count, dim);
     ERROR_CHECK(cudaDeviceSynchronize());
 
-    // float* matrixNorm_h = new float[matrix_size];
-    // ERROR_CHECK(cudaMemcpy(matrixNorm_h, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // int idxA = word2vec_map["athens"];
-    // int idxB = word2vec_map["greece"];
-    // int idxC = word2vec_map["baghdad"];
-    // for(int i = 0; i < 10; i++){
-    //   cout << matrixNorm_h[idxA * dim + i] << endl;;
-    // }
-    // for(int i = 0; i < 10; i++){
-    //   cout << matrixNorm_h[idxB * dim + i] << endl;;
-    // }
-    // for(int i = 0; i < 10; i++){
-    //   cout << matrixNorm_h[idxC * dim + i] << endl;;
-    // }
-
     // in case fillABC does not work
     for(int i = 0; i < query_count; i++){
       ERROR_CHECK(cudaMemcpy(&A_d[i*dim], &matrixNorm_d[A_idx[i]*dim], dim*sizeof(float), cudaMemcpyDeviceToDevice));
       ERROR_CHECK(cudaMemcpy(&B_d[i*dim], &matrixNorm_d[B_idx[i]*dim], dim*sizeof(float), cudaMemcpyDeviceToDevice));
       ERROR_CHECK(cudaMemcpy(&C_d[i*dim], &matrixNorm_d[C_idx[i]*dim], dim*sizeof(float), cudaMemcpyDeviceToDevice));
     }
-
-    // dim3 dimGrid1(ceil(query_count/1024.0), 1, 1);
-    // dim3 dimBlock1(1024, 1, 1);
-    // fillABC<<<dimGrid1, dimBlock1>>>(A_d, B_d, C_d, A_idx_d, B_idx_d, C_idx_d, matrixNorm_d, query_count, dim);
-    // ERROR_CHECK(cudaDeviceSynchronize());
-
-    // ERROR_CHECK(cudaMemcpy(A_h, A_d, query_matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // ERROR_CHECK(cudaMemcpy(B_h, B_d, query_matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // ERROR_CHECK(cudaMemcpy(C_h, C_d, query_matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // for(int i = 0; i < 10; i++){
-    //   cout << A_h[i] << endl;;
-    // }
-    // for(int i = 0; i < 10; i++){
-    //   cout << B_h[i] << endl;;
-    // }
-    // for(int i = 0; i < 10; i++){
-    //   cout << C_h[i] << endl;;
-    // }
 
     const float alpha = 1.0f;
     const float negative_alpha = -1.0f;
@@ -363,94 +330,38 @@ int analogy_batch_query(string filename, string queryFile) {
     );
     ERROR_CHECK(cudaDeviceSynchronize());
 
-    // float* predict_h = new float[query_matrix_size];
-    // ERROR_CHECK(cudaMemcpy(predict_h, predict_d, query_matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // for(int i = 0; i < dim; i++){
-    //   cout << predict_h[i] << endl;
-    // }
-
     cublasSgemm(
       handle, CUBLAS_OP_N, CUBLAS_OP_N,
       word_count, query_count, dim,
       &alpha,
-      matrixNorm_T, std::max(word_count, dim),
-      predict_d, std::max(query_count, dim),
+      matrixNorm_T, word_count,
+      predict_d, dim,
       &beta,
-      resVec_d, std::max(word_count, query_count)
+      resVec_d, word_count
     );
     ERROR_CHECK(cudaDeviceSynchronize());
 
     float* resVec_h = new float[query_count*word_count];
     ERROR_CHECK(cudaMemcpy(resVec_h, resVec_d, query_count*word_count*sizeof(float), cudaMemcpyDeviceToHost));
-    // float* matrixNorm_h = new float[matrix_size];
-    // ERROR_CHECK(cudaMemcpy(matrixNorm_h, matrixNorm_d, matrix_size*sizeof(float), cudaMemcpyDeviceToHost));
-    // for(int i = 0; i < dim; i++){
-    //   cout << matrixNorm_h[dim+i] << endl;
-    // }
 
-    // cout << resVec_h[1] << endl;
-    // cout << resVec_h[query_count] << endl;
-    // int idx_a = A_idx[0];
-    // int idx_b = B_idx[0];
-    // int idx_c = C_idx[0];
-    // int max_idx = 0;
-    // int max = -1;
-    // cout << dictionary[idx_a] << endl;
-    // cout << dictionary[idx_b] << endl;
-    // cout << dictionary[idx_c] << endl;
-    // cout << resVec_h[word2vec_map["germany"]] << endl;
-    // cout << dictionary[word2vec_map["germany"]] << endl;
-    // cout << resVec_h[word2vec_map["zetan"]] << endl;
-    // for(int j = 0; j < word_count; j ++){
-    //   if(j == idx_a || j == idx_b || j == idx_c)
-    //     continue;
-    //   cout << max << endl;
-    //   if(resVec_h[j] > max){
-    //     // cout << dictionary[j] << " " << resVec_h[j] << endl;
-    //     max = resVec_h[j];
-    //     max_idx = j;
-    //   }
-    // }
-    // cout << max_idx << endl;
-    // cout << dictionary[max_idx] << endl;
+    int total_correct = 0;
+    float* resVec_tmp;
+    for(int i = 0; i < query_count; i++){
+      int idx_a = A_idx[i];
+      int idx_b = B_idx[i];
+      int idx_c = C_idx[i];
+      resVec_tmp = &resVec_h[i*word_count];
+      resVec_tmp[idx_a] = 0;
+      resVec_tmp[idx_b] = 0;
+      resVec_tmp[idx_c] = 0;
+      int max = std::max_element(resVec_tmp, resVec_tmp + word_count) - resVec_tmp;
 
-    // dim3 dimGrid2(ceil(query_count/1024.0), 1, 1);
-    // dim3 dimBlock2(1024, 1, 1);
-    // correctness<<<dimGrid2, dimBlock2>>>(resVec_d, A_idx_d, B_idx_d, C_idx_d, D_idx_d, word_count, query_count);
-    // ERROR_CHECK(cudaDeviceSynchronize());
-    // ERROR_CHECK(cudaMemcpy(D_res, D_idx_d, query_count*sizeof(float), cudaMemcpyDeviceToHost));
-
-    int idx_a = A_idx[2];
-    int idx_b = B_idx[2];
-    int idx_c = C_idx[2];
-    cout << dictionary[idx_a] << endl;
-    cout << dictionary[idx_b] << endl;
-    cout << dictionary[idx_c] << endl;
-    float* resVec_tmp = &resVec_h[2*word_count];
-    resVec_tmp[idx_a] = 0;
-    resVec_tmp[idx_b] = 0;
-    resVec_tmp[idx_c] = 0;
-    int max = std::max_element(resVec_tmp, resVec_tmp + word_count) - resVec_tmp;
-    cout << dictionary[max] << endl;
-
-    // int total_correct = 0;
-    // for(int i = 0; i < query_count; i++){
-    //   int idx_a = A_idx[i];
-    //   int idx_b = B_idx[i];
-    //   int idx_c = C_idx[i];
-    //   float* resVec_tmp = &resVec_h[i*word_count];
-    //   resVec_tmp[idx_a] = 0;
-    //   resVec_tmp[idx_b] = 0;
-    //   resVec_tmp[idx_c] = 0;
-    //   int max = std::max_element(resVec_tmp, resVec_tmp + word_count) - resVec_tmp;
-    //   cout << dictionary[max] << endl;
-    //
-    //   if(max == D_idx[i]){
-    //     total_correct ++;
-    //   }
-    // }
-    // cout << "total_correct is: " << total_correct << endl;
-    // cout << "Correctness is: " << (total_correct*1.0)/query_count << endl;
+      if(max == D_idx[i]){
+        total_correct ++;
+      }
+    }
+    cout << "total_correct is: " << total_correct << " out of: " << query_count << endl;
+    cout << "Correctness is: " << (total_correct*1.0)/query_count << endl;
 
     cublasDestroy(handle);
     ERROR_CHECK(cudaFree(matrix_d));
