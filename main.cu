@@ -1,5 +1,5 @@
 #include <iostream>
-#include "analogy_single_query.cu"
+#include "analogy.cu"
 
 using namespace std;
 
@@ -14,4 +14,8 @@ int main(int argc, char* argv[]) {
     vector<string> words(vinit, end(vinit));
     analogy_single_query(argv[2], words);
   }
+  else if(argc == 4 && strcmp(argv[1], "analogy") == 0){
+    analogy_batch_query(argv[2], argv[3]);
+  }
+
 }
