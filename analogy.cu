@@ -125,8 +125,11 @@ int fill_host_query_vector(string queryFile, unordered_map<string, int> word2vec
     string buf;
     stringstream ss(str);
     vector<string> queryWords;
-    while (ss >> buf)
+    while (ss >> buf){
+      if (buf[0] >= 'A' and buf[0] <= 'Z')
+        buf[0] = buf[0]-'A'+'a';
       queryWords.push_back(buf);
+    }
     int occurence_count;
     for(int j = 0; j < 4; j++){
       occurence_count = word2vec_map.count(queryWords[j]);
